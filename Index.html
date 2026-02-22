@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockCount — Yearly Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #f0c040;
+    --accent-dim: #f0c04022;
+    --text: #e8e8e8;
+    --text-muted: #888;
+    --success: #4caf7d;
+    --danger: #e05555;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Access Screen ── */
+  #access-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    flex-direction: column;
+  }
+  .access-box {
+    width: 360px; padding: 48px 40px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .access-logo {
+    font-family: var(--mono); font-size: 18px;
+    letter-spacing: 0.12em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .access-logo span { color: var(--text-muted); }
+  .access-subtitle {
+    font-size: 13px; color: var(--text-muted);
+    margin-bottom: 36px; line-height: 1.5;
+  }
+  .access-label {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; color: var(--text-muted);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  #access-input {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 20px;
+    padding: 14px 16px; outline: none; letter-spacing: 0.2em;
+    text-align: center; margin-bottom: 14px;
+    transition: border-color 0.15s;
+  }
+  #access-input:focus { border-color: var(--accent); }
+  #access-input.shake {
+    animation: shake 0.3s ease;
+    border-color: var(--danger);
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  #btn-access {
+    width: 100%; background: var(--accent); color: #000;
+    border: none; font-family: var(--mono);
+    font-size: 12px; padding: 14px; cursor: pointer;
+    font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; transition: opacity 0.15s;
+  }
+  #btn-access:hover { opacity: 0.85; }
+  #access-error {
+    color: var(--danger); font-family: var(--mono);
+    font-size: 11px; text-align: center;
+    margin-top: 12px; min-height: 16px;
+    letter-spacing: 0.05em;
+  }
+  .access-hint {
+    font-size: 12px; color: #444;
+    text-align: center; margin-top: 32px;
+    font-family: var(--mono);
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--text-muted); }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .btn-ghost {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-muted); font-family: var(--mono);
+    font-size: 11px; padding: 6px 14px; cursor: pointer;
+    letter-spacing: 0.05em; transition: all 0.15s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Setup Banner (name/location) ── */
+  #setup-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; gap: 20px; align-items: center;
+    flex-wrap: wrap;
+  }
+  #setup-bar label {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.12em; color: var(--text-muted);
+    text-transform: uppercase; margin-right: 6px;
+  }
+  .setup-field {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .setup-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--sans); font-size: 14px;
+    padding: 7px 12px; width: 200px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .setup-input:focus { border-color: var(--accent); }
+  .setup-input.locked {
+    color: var(--accent); background: var(--accent-dim);
+    border-color: transparent; cursor: default;
+  }
+  #setup-bar .btn-lock {
+    background: var(--accent); color: #000;
+    border: none; font-family: var(--mono);
+    font-size: 11px; padding: 7px 16px; cursor: pointer;
+    font-weight: 700; letter-spacing: 0.05em; transition: opacity 0.15s;
+  }
+  #setup-bar .btn-lock:hover { opacity: 0.85; }
+  #setup-bar .btn-unlock {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 18px; cursor: pointer; line-height: 1; padding: 2px 6px;
+    transition: color 0.15s;
+  }
+  #setup-bar .btn-unlock:hover { color: var(--danger); }
+  #session-status {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--success); margin-left: auto;
+    display: none;
+  }
+
+  /* ── Main ── */
+  main {
+    flex: 1; display: flex;
+    flex-direction: column; align-items: center;
+    padding: 40px 20px;
+  }
+
+  /* ── Config Notice ── */
+  #config-notice {
+    width: 100%; max-width: 640px;
+    border: 1px solid var(--accent);
+    background: var(--accent-dim); padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+  #config-notice h3 {
+    font-family: var(--mono); font-size: 12px;
+    letter-spacing: 0.1em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  #config-notice p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  #config-notice code {
+    background: var(--surface2); color: var(--accent);
+    font-family: var(--mono); font-size: 12px; padding: 1px 5px;
+  }
+  .config-inputs { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .config-row { display: flex; gap: 10px; align-items: center; }
+  .config-row label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--text-muted); width: 120px; flex-shrink: 0; }
+  .config-row input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    padding: 8px 12px; outline: none; transition: border-color 0.15s;
+  }
+  .config-row input:focus { border-color: var(--accent); }
+  .btn-config {
+    background: var(--accent); color: #000;
+    border: none; font-family: var(--mono);
+    font-size: 11px; padding: 10px 20px; cursor: pointer;
+    font-weight: 700; letter-spacing: 0.05em;
+    margin-top: 6px; align-self: flex-start;
+    transition: opacity 0.15s;
+  }
+  .btn-config:hover { opacity: 0.85; }
+
+  /* ── Count Form ── */
+  #count-form {
+    width: 100%; max-width: 640px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+
+  .form-section { display: flex; flex-direction: column; gap: 8px; }
+  .field-label {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .field-num { color: var(--accent); margin-right: 8px; }
+
+  /* Product Search */
+  #product-search-wrap { position: relative; }
+  #product-search {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: var(--sans); font-size: 15px;
+    padding: 14px 16px; outline: none;
+    transition: border-color 0.15s;
+  }
+  #product-search:focus { border-color: var(--accent); }
+  #product-search::placeholder { color: var(--text-muted); }
+  #product-search.selected {
+    border-color: var(--success); color: var(--success);
+    background: #4caf7d11;
+  }
+  #search-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-top: none; max-height: 260px; overflow-y: auto;
+    z-index: 50; display: none;
+  }
+  #search-dropdown.open { display: block; }
+  .drop-item {
+    padding: 11px 16px; cursor: pointer;
+    font-size: 14px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.1s;
+  }
+  .drop-item:last-child { border-bottom: none; }
+  .drop-item:hover, .drop-item.active { background: var(--accent-dim); }
+  .drop-item .sku {
+    font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+  }
+  .drop-empty {
+    padding: 14px 16px; color: var(--text-muted);
+    font-size: 13px; font-style: italic;
+  }
+
+  /* Quantity */
+  #qty-wrap { display: flex; gap: 0; align-items: stretch; }
+  .qty-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-size: 22px; width: 52px;
+    cursor: pointer; font-family: var(--mono);
+    transition: background 0.1s; user-select: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qty-btn:hover { background: var(--surface2); }
+  #qty-input {
+    flex: 1; background: var(--surface);
+    border: 1px solid var(--border); border-left: none; border-right: none;
+    color: var(--text); font-family: var(--mono); font-size: 28px;
+    text-align: center; outline: none;
+    transition: border-color 0.15s;
+  }
+  #qty-input:focus { border-color: var(--accent); border-left-color: var(--accent); border-right-color: var(--accent); }
+
+  /* Notes */
+  #notes-input {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: var(--sans); font-size: 14px;
+    padding: 12px 16px; outline: none; resize: vertical;
+    min-height: 70px; transition: border-color 0.15s;
+  }
+  #notes-input:focus { border-color: var(--accent); }
+  #notes-input::placeholder { color: var(--text-muted); }
+
+  /* Submit */
+  #btn-submit {
+    background: var(--accent); color: #000;
+    border: none; font-family: var(--mono);
+    font-size: 13px; padding: 16px 32px; cursor: pointer;
+    font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; width: 100%;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  #btn-submit:hover:not(:disabled) { opacity: 0.9; }
+  #btn-submit:active:not(:disabled) { transform: scale(0.99); }
+  #btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--success); color: #fff;
+    font-family: var(--mono); font-size: 12px;
+    padding: 12px 24px; letter-spacing: 0.08em;
+    opacity: 0; transition: all 0.3s; z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.error { background: var(--danger); }
+
+  /* Session Log */
+  #session-log {
+    width: 100%; max-width: 640px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+  .log-header {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; color: var(--text-muted);
+    text-transform: uppercase; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .log-count {
+    background: var(--accent); color: #000;
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 8px; font-weight: 700;
+  }
+  .log-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-qty {
+    font-family: var(--mono); font-size: 20px;
+    color: var(--accent); min-width: 52px; text-align: right;
+    line-height: 1.2;
+  }
+  .log-product { font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .log-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Admin Panel */
+  #admin-panel {
+    display: none;
+    width: 100%; max-width: 860px;
+    flex-direction: column; gap: 28px;
+  }
+  .admin-title {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; color: var(--accent);
+    text-transform: uppercase; border-bottom: 1px solid var(--border);
+    padding-bottom: 14px; margin-bottom: 4px;
+  }
+  .admin-section {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .admin-section h3 {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 16px;
+  }
+  .upload-zone {
+    border: 2px dashed var(--border); padding: 32px;
+    text-align: center; cursor: pointer;
+    transition: border-color 0.2s; position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-zone p { color: var(--text-muted); font-size: 14px; }
+  .upload-zone .upload-icon { font-size: 32px; margin-bottom: 10px; }
+  #upload-preview {
+    margin-top: 14px; font-family: var(--mono); font-size: 12px;
+    color: var(--success); display: none;
+  }
+  .btn-upload {
+    background: var(--accent); color: #000;
+    border: none; font-family: var(--mono);
+    font-size: 11px; padding: 10px 20px; cursor: pointer;
+    font-weight: 700; letter-spacing: 0.05em;
+    margin-top: 14px; transition: opacity 0.15s;
+    display: none;
+  }
+  .btn-upload:hover { opacity: 0.85; }
+
+  /* Submissions Table */
+  #submissions-table-wrap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); padding: 10px 12px;
+    text-align: left; border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .td-qty { font-family: var(--mono); color: var(--accent); }
+  .no-data { padding: 32px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+  .btn-export {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-muted); font-family: var(--mono);
+    font-size: 11px; padding: 8px 16px; cursor: pointer;
+    letter-spacing: 0.05em; transition: all 0.15s;
+  }
+  .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Admin Password Modal */
+  #admin-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  #admin-modal.show { display: flex; }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 32px; width: 360px;
+  }
+  .modal-box h2 {
+    font-family: var(--mono); font-size: 12px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px;
+  }
+  .modal-box input {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 14px;
+    padding: 12px 14px; outline: none; margin-bottom: 14px;
+    transition: border-color 0.15s;
+  }
+  .modal-box input:focus { border-color: var(--accent); }
+  .modal-row { display: flex; gap: 10px; }
+  .btn-modal {
+    flex: 1; background: var(--accent); color: #000;
+    border: none; font-family: var(--mono);
+    font-size: 11px; padding: 12px; cursor: pointer;
+    font-weight: 700; letter-spacing: 0.05em;
+  }
+  .btn-modal-cancel {
+    flex: 1; background: none; border: 1px solid var(--border);
+    color: var(--text-muted); font-family: var(--mono);
+    font-size: 11px; padding: 12px; cursor: pointer;
+  }
+  .modal-error {
+    color: var(--danger); font-family: var(--mono);
+    font-size: 11px; margin-top: -6px; margin-bottom: 10px;
+    display: none;
+  }
+
+  /* Supabase SQL block */
+  .sql-block {
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 16px; font-family: var(--mono); font-size: 12px;
+    color: #aaa; white-space: pre-wrap; line-height: 1.6;
+    margin-top: 12px; overflow-x: auto;
+  }
+  .sql-keyword { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    header, #setup-bar { padding: 12px 16px; }
+    main { padding: 24px 14px; }
+    .setup-input { width: 150px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Access Screen -->
+<div id="access-screen">
+  <div class="access-box">
+    <div class="access-logo">Stock<span>Count</span></div>
+    <div class="access-subtitle">Yearly inventory count portal.<br>Enter the access code to continue.</div>
+    <div class="access-label">Access Code</div>
+    <input type="password" id="access-input" placeholder="••••••••" maxlength="20" autocomplete="off">
+    <button id="btn-access">Enter →</button>
+    <div id="access-error"></div>
+    <div class="access-hint">Contact your manager if you don't have the code.</div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="logo">Stock<span>Count</span> <span style="color:#444">/ 2025</span></div>
+  <div class="header-right">
+    <button class="btn-ghost" id="btn-admin">Admin ↗</button>
+  </div>
+</header>
+
+<!-- Setup Bar -->
+<div id="setup-bar">
+  <div class="setup-field">
+    <label>Your Name</label>
+    <input type="text" class="setup-input" id="input-name" placeholder="e.g. Sarah Chen">
+    <button class="btn-lock" id="btn-lock-name">Set</button>
+  </div>
+  <div class="setup-field">
+    <label>Location</label>
+    <input type="text" class="setup-input" id="input-location" placeholder="e.g. Warehouse B">
+    <button class="btn-lock" id="btn-lock-location">Set</button>
+  </div>
+  <div id="session-status">● SESSION ACTIVE</div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Admin Modal -->
+<div id="admin-modal">
+  <div class="modal-box">
+    <h2>Admin Access</h2>
+    <input type="password" id="admin-pw-input" placeholder="Enter admin password">
+    <div class="modal-error" id="pw-error">Incorrect password</div>
+    <div class="modal-row">
+      <button class="btn-modal" id="btn-pw-enter">Enter</button>
+      <button class="btn-modal-cancel" id="btn-pw-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- Config Notice -->
+  <div id="config-notice">
+    <h3>⚙ Supabase Configuration Required</h3>
+    <p>Paste your Supabase project URL and anon key below to connect. You can find these in your Supabase project under <code>Settings → API</code>.</p>
+    <div class="config-inputs">
+      <div class="config-row">
+        <label>Project URL</label>
+        <input type="text" id="cfg-url" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div class="config-row">
+        <label>Anon Key</label>
+        <input type="text" id="cfg-key" placeholder="eyJhbGciOi...">
+      </div>
+      <button class="btn-config" id="btn-save-config">Save & Connect</button>
+    </div>
+    <details style="margin-top:18px">
+      <summary style="cursor:pointer; font-family:var(--mono); font-size:11px; color:var(--text-muted); letter-spacing:0.08em; text-transform:uppercase;">▸ Show SQL to set up your database tables</summary>
+      <div class="sql-block"><span class="sql-keyword">-- Run this in Supabase → SQL Editor</span>
+
+<span class="sql-keyword">CREATE TABLE</span> products (
+  id        uuid <span class="sql-keyword">DEFAULT</span> gen_random_uuid() <span class="sql-keyword">PRIMARY KEY</span>,
+  sku       text,
+  name      text <span class="sql-keyword">NOT NULL</span>,
+  category  text,
+  unit      text,
+  created_at timestamptz <span class="sql-keyword">DEFAULT</span> now()
+);
+
+<span class="sql-keyword">CREATE TABLE</span> stock_counts (
+  id          uuid <span class="sql-keyword">DEFAULT</span> gen_random_uuid() <span class="sql-keyword">PRIMARY KEY</span>,
+  counted_by  text <span class="sql-keyword">NOT NULL</span>,
+  location    text <span class="sql-keyword">NOT NULL</span>,
+  product_id  uuid <span class="sql-keyword">REFERENCES</span> products(id),
+  product_name text,
+  sku         text,
+  quantity    integer <span class="sql-keyword">NOT NULL</span>,
+  notes       text,
+  submitted_at timestamptz <span class="sql-keyword">DEFAULT</span> now()
+);
+
+<span class="sql-keyword">-- Enable public read/write (for the app)</span>
+<span class="sql-keyword">ALTER TABLE</span> products <span class="sql-keyword">ENABLE ROW LEVEL SECURITY</span>;
+<span class="sql-keyword">ALTER TABLE</span> stock_counts <span class="sql-keyword">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="sql-keyword">CREATE POLICY</span> "public read products" <span class="sql-keyword">ON</span> products
+  <span class="sql-keyword">FOR SELECT USING</span> (true);
+<span class="sql-keyword">CREATE POLICY</span> "public insert products" <span class="sql-keyword">ON</span> products
+  <span class="sql-keyword">FOR INSERT WITH CHECK</span> (true);
+<span class="sql-keyword">CREATE POLICY</span> "public insert counts" <span class="sql-keyword">ON</span> stock_counts
+  <span class="sql-keyword">FOR INSERT WITH CHECK</span> (true);
+<span class="sql-keyword">CREATE POLICY</span> "public read counts" <span class="sql-keyword">ON</span> stock_counts
+  <span class="sql-keyword">FOR SELECT USING</span> (true);</div>
+    </details>
+  </div>
+
+  <!-- Count Form -->
+  <div id="count-form">
+
+    <!-- Product Search -->
+    <div class="form-section">
+      <div class="field-label"><span class="field-num">01 /</span> Product</div>
+      <div id="product-search-wrap">
+        <input type="text" id="product-search" placeholder="Search by name or SKU…" autocomplete="off">
+        <div id="search-dropdown"></div>
+      </div>
+    </div>
+
+    <!-- Quantity -->
+    <div class="form-section">
+      <div class="field-label"><span class="field-num">02 /</span> Quantity Counted</div>
+      <div id="qty-wrap">
+        <button class="qty-btn" id="btn-minus">−</button>
+        <input type="number" id="qty-input" value="0" min="0">
+        <button class="qty-btn" id="btn-plus">+</button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <div class="field-label"><span class="field-num">03 /</span> Notes <span style="color:#555">(optional)</span></div>
+      <textarea id="notes-input" placeholder="e.g. damaged units, partial box…"></textarea>
+    </div>
+
+    <button id="btn-submit" disabled>Submit Count →</button>
+
+  </div>
+
+  <!-- Session Log -->
+  <div id="session-log" style="display:none">
+    <div class="log-header">
+      This Session
+      <span class="log-count" id="log-count">0</span>
+    </div>
+    <div id="log-items"></div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="admin-panel">
+    <div class="admin-title">Admin Panel</div>
+
+    <!-- Upload Products -->
+    <div class="admin-section">
+      <h3>Upload Product List (CSV / Excel)</h3>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+        <div class="upload-icon">📂</div>
+        <p>Drop your file here or click to browse</p>
+        <p style="font-size:12px; margin-top:6px; color:#555">Columns: <code style="color:var(--accent); font-family:var(--mono)">sku, name, category, unit</code> — only <code style="color:var(--accent); font-family:var(--mono)">name</code> is required</p>
+      </div>
+      <div id="upload-preview"></div>
+      <button class="btn-upload" id="btn-upload-products">Upload to Database →</button>
+    </div>
+
+    <!-- Submissions -->
+    <div class="admin-section">
+      <h3 style="display:flex; justify-content:space-between; align-items:center">
+        Submissions
+        <button class="btn-export" id="btn-export-csv">Export CSV ↓</button>
+      </h3>
+      <div id="submissions-table-wrap">
+        <div class="no-data" id="no-submissions">Loading submissions…</div>
+        <table id="submissions-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Date / Time</th>
+              <th>Person</th>
+              <th>Location</th>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="submissions-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- SheetJS for Excel parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+// ─────────────────────────────────────────────
+// ACCESS SCREEN
+// ─────────────────────────────────────────────
+function checkAccess() {
+  if (sessionStorage.getItem('sc_access') === 'granted') {
+    document.getElementById('access-screen').style.display = 'none';
+  } else {
+    document.getElementById('access-input').focus();
+  }
+}
+
+function tryAccessCode() {
+  const val = document.getElementById('access-input').value.trim();
+  if (val === ACCESS_CODE) {
+    sessionStorage.setItem('sc_access', 'granted');
+    const screen = document.getElementById('access-screen');
+    screen.style.opacity = '0';
+    screen.style.transition = 'opacity 0.3s';
+    setTimeout(() => screen.style.display = 'none', 300);
+  } else {
+    const input = document.getElementById('access-input');
+    const err = document.getElementById('access-error');
+    input.classList.add('shake');
+    err.textContent = 'Incorrect code — try again';
+    input.value = '';
+    setTimeout(() => { input.classList.remove('shake'); }, 400);
+    input.focus();
+  }
+}
+
+document.getElementById('btn-access').addEventListener('click', tryAccessCode);
+document.getElementById('access-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryAccessCode();
+  document.getElementById('access-error').textContent = '';
+});
+
+// ─────────────────────────────────────────────
+// CONFIG & STATE
+// ─────────────────────────────────────────────
+const ADMIN_PASSWORD = 'stockadmin2025'; // Change this!
+const ACCESS_CODE = 'stockcount2025';    // Change this! Share with colleagues.
+let SUPABASE_URL = localStorage.getItem('sc_url') || '';
+let SUPABASE_KEY = localStorage.getItem('sc_key') || '';
+let isConfigured = false;
+
+let userName = '';
+let userLocation = '';
+let sessionLocked = false;
+
+let allProducts = [];
+let selectedProduct = null;
+let sessionSubmissions = [];
+
+// ─────────────────────────────────────────────
+// SUPABASE HELPERS
+// ─────────────────────────────────────────────
+async function supabaseRequest(table, method, body, query = '') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': method === 'POST' ? 'return=minimal' : 'return=representation'
+  };
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  if (method === 'GET') return res.json();
+  return res;
+}
+
+// ─────────────────────────────────────────────
+// INIT CONFIG
+// ─────────────────────────────────────────────
+function initConfig() {
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    document.getElementById('cfg-url').value = SUPABASE_URL;
+    document.getElementById('cfg-key').value = SUPABASE_KEY;
+    activateConfig();
+  }
+}
+
+function activateConfig() {
+  isConfigured = true;
+  document.getElementById('config-notice').style.display = 'none';
+  loadProducts();
+}
+
+document.getElementById('btn-save-config').addEventListener('click', () => {
+  const url = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('cfg-key').value.trim();
+  if (!url || !key) return showToast('Please enter both URL and key', true);
+  SUPABASE_URL = url;
+  SUPABASE_KEY = key;
+  localStorage.setItem('sc_url', url);
+  localStorage.setItem('sc_key', key);
+  activateConfig();
+  showToast('Connected to Supabase!');
+});
+
+// ─────────────────────────────────────────────
+// SESSION SETUP (Name + Location)
+// ─────────────────────────────────────────────
+function lockField(inputId, btnId, valueVar) {
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  const val = input.value.trim();
+  if (!val) return;
+  input.classList.add('locked');
+  input.readOnly = true;
+
+  const unlockBtn = document.createElement('button');
+  unlockBtn.className = 'btn-unlock';
+  unlockBtn.textContent = '✕';
+  unlockBtn.title = 'Change';
+  unlockBtn.addEventListener('click', () => {
+    input.classList.remove('locked');
+    input.readOnly = false;
+    unlockBtn.remove();
+    btn.style.display = '';
+    if (inputId === 'input-name') userName = '';
+    else userLocation = '';
+    checkSessionReady();
+  });
+  btn.style.display = 'none';
+  btn.parentNode.insertBefore(unlockBtn, btn.nextSibling);
+
+  if (inputId === 'input-name') userName = val;
+  else userLocation = val;
+  checkSessionReady();
+}
+
+document.getElementById('btn-lock-name').addEventListener('click', () => lockField('input-name', 'btn-lock-name'));
+document.getElementById('btn-lock-location').addEventListener('click', () => lockField('input-location', 'btn-lock-location'));
+document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') lockField('input-name', 'btn-lock-name'); });
+document.getElementById('input-location').addEventListener('keydown', e => { if (e.key === 'Enter') lockField('input-location', 'btn-lock-location'); });
+
+function checkSessionReady() {
+  const ready = userName && userLocation;
+  document.getElementById('session-status').style.display = ready ? 'block' : 'none';
+  updateSubmitBtn();
+}
+
+// ─────────────────────────────────────────────
+// PRODUCT SEARCH
+// ─────────────────────────────────────────────
+async function loadProducts() {
+  try {
+    const data = await supabaseRequest('products', 'GET', null, '?select=id,sku,name,category,unit&order=name.asc&limit=1000');
+    allProducts = data;
+  } catch(e) {
+    console.error('Could not load products:', e);
+  }
+}
+
+const searchInput = document.getElementById('product-search');
+const dropdown = document.getElementById('search-dropdown');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  selectedProduct = null;
+  searchInput.classList.remove('selected');
+  updateSubmitBtn();
+
+  if (!q || q.length < 1) {
+    dropdown.classList.remove('open');
+    return;
+  }
+
+  const matches = allProducts.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    (p.sku && p.sku.toLowerCase().includes(q))
+  ).slice(0, 20);
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div class="drop-empty">No products found</div>';
+  } else {
+    dropdown.innerHTML = matches.map(p => `
+      <div class="drop-item" data-id="${p.id}" data-name="${escHtml(p.name)}" data-sku="${escHtml(p.sku||'')}">
+        <span>${escHtml(p.name)}</span>
+        <span class="sku">${p.sku || ''}</span>
+      </div>
+    `).join('');
+    dropdown.querySelectorAll('.drop-item').forEach(el => {
+      el.addEventListener('click', () => selectProduct(el.dataset.id, el.dataset.name, el.dataset.sku));
+    });
+  }
+  dropdown.classList.add('open');
+});
+
+function selectProduct(id, name, sku) {
+  selectedProduct = { id, name, sku };
+  searchInput.value = name + (sku ? ` — ${sku}` : '');
+  searchInput.classList.add('selected');
+  dropdown.classList.remove('open');
+  document.getElementById('qty-input').focus();
+  updateSubmitBtn();
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('product-search-wrap').contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+
+// ─────────────────────────────────────────────
+// QUANTITY
+// ─────────────────────────────────────────────
+const qtyInput = document.getElementById('qty-input');
+document.getElementById('btn-minus').addEventListener('click', () => {
+  const v = parseInt(qtyInput.value) || 0;
+  qtyInput.value = Math.max(0, v - 1);
+});
+document.getElementById('btn-plus').addEventListener('click', () => {
+  const v = parseInt(qtyInput.value) || 0;
+  qtyInput.value = v + 1;
+});
+
+// ─────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────
+function updateSubmitBtn() {
+  const ready = userName && userLocation && selectedProduct;
+  document.getElementById('btn-submit').disabled = !ready;
+}
+
+document.getElementById('btn-submit').addEventListener('click', async () => {
+  if (!isConfigured) return showToast('Supabase not configured', true);
+  const qty = parseInt(qtyInput.value) || 0;
+  const notes = document.getElementById('notes-input').value.trim();
+
+  const payload = {
+    counted_by: userName,
+    location: userLocation,
+    product_id: selectedProduct.id,
+    product_name: selectedProduct.name,
+    sku: selectedProduct.sku || null,
+    quantity: qty,
+    notes: notes || null
+  };
+
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('btn-submit').textContent = 'Submitting…';
+
+  try {
+    await supabaseRequest('stock_counts', 'POST', payload);
+    // Add to session log
+    sessionSubmissions.unshift({ ...payload, submitted_at: new Date().toISOString() });
+    renderSessionLog();
+    // Reset form (keep name + location)
+    searchInput.value = '';
+    searchInput.classList.remove('selected');
+    selectedProduct = null;
+    qtyInput.value = '0';
+    document.getElementById('notes-input').value = '';
+    document.getElementById('btn-submit').textContent = 'Submit Count →';
+    updateSubmitBtn();
+    showToast(`✓ Saved — ${payload.product_name} × ${qty}`);
+    searchInput.focus();
+  } catch(e) {
+    document.getElementById('btn-submit').textContent = 'Submit Count →';
+    document.getElementById('btn-submit').disabled = false;
+    showToast('Error saving — check console', true);
+    console.error(e);
+  }
+});
+
+// ─────────────────────────────────────────────
+// SESSION LOG
+// ─────────────────────────────────────────────
+function renderSessionLog() {
+  const logEl = document.getElementById('session-log');
+  const countEl = document.getElementById('log-count');
+  const itemsEl = document.getElementById('log-items');
+
+  if (sessionSubmissions.length === 0) { logEl.style.display = 'none'; return; }
+  logEl.style.display = 'block';
+  countEl.textContent = sessionSubmissions.length;
+  itemsEl.innerHTML = sessionSubmissions.map(s => `
+    <div class="log-item">
+      <div class="log-qty">${s.quantity}</div>
+      <div>
+        <div class="log-product">${escHtml(s.product_name)}</div>
+        <div class="log-meta">${s.sku ? s.sku + ' · ' : ''}${s.location}${s.notes ? ' · ' + escHtml(s.notes) : ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+// ADMIN
+// ─────────────────────────────────────────────
+document.getElementById('btn-admin').addEventListener('click', () => {
+  document.getElementById('admin-modal').classList.add('show');
+  document.getElementById('admin-pw-input').focus();
+});
+document.getElementById('btn-pw-cancel').addEventListener('click', () => {
+  document.getElementById('admin-modal').classList.remove('show');
+});
+document.getElementById('btn-pw-enter').addEventListener('click', checkAdminPw);
+document.getElementById('admin-pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkAdminPw(); });
+
+function checkAdminPw() {
+  const pw = document.getElementById('admin-pw-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById('admin-modal').classList.remove('show');
+    document.getElementById('admin-pw-input').value = '';
+    showAdminPanel();
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('admin-pw-input').select();
+  }
+}
+
+function showAdminPanel() {
+  document.getElementById('count-form').style.display = 'none';
+  document.getElementById('session-log').style.display = 'none';
+  const panel = document.getElementById('admin-panel');
+  panel.style.display = 'flex';
+  document.getElementById('btn-admin').textContent = '← Back';
+  document.getElementById('btn-admin').removeEventListener('click', null);
+  document.getElementById('btn-admin').onclick = hideAdminPanel;
+  loadSubmissions();
+}
+
+function hideAdminPanel() {
+  document.getElementById('count-form').style.display = 'flex';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('btn-admin').textContent = 'Admin ↗';
+  document.getElementById('btn-admin').onclick = null;
+  document.getElementById('btn-admin').addEventListener('click', () => {
+    document.getElementById('admin-modal').classList.add('show');
+    document.getElementById('admin-pw-input').focus();
+  });
+  renderSessionLog();
+}
+
+// ── Load Submissions ──
+async function loadSubmissions() {
+  if (!isConfigured) return;
+  try {
+    const data = await supabaseRequest('stock_counts', 'GET', null, '?select=*&order=submitted_at.desc&limit=500');
+    renderSubmissions(data);
+  } catch(e) {
+    document.getElementById('no-submissions').textContent = 'Error loading submissions.';
+  }
+}
+
+function renderSubmissions(data) {
+  const noEl = document.getElementById('no-submissions');
+  const table = document.getElementById('submissions-table');
+  const tbody = document.getElementById('submissions-tbody');
+
+  if (!data || data.length === 0) {
+    noEl.textContent = 'No submissions yet.';
+    table.style.display = 'none';
+    return;
+  }
+  noEl.style.display = 'none';
+  table.style.display = 'table';
+  tbody.innerHTML = data.map(r => {
+    const dt = new Date(r.submitted_at);
+    const dateStr = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    return `<tr>
+      <td style="white-space:nowrap; color:var(--text-muted); font-family:var(--mono); font-size:11px">${dateStr}</td>
+      <td>${escHtml(r.counted_by)}</td>
+      <td>${escHtml(r.location)}</td>
+      <td style="font-family:var(--mono); font-size:12px">${escHtml(r.sku||'')}</td>
+      <td>${escHtml(r.product_name||'')}</td>
+      <td class="td-qty">${r.quantity}</td>
+      <td style="color:var(--text-muted); font-size:12px">${escHtml(r.notes||'')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Export CSV ──
+document.getElementById('btn-export-csv').addEventListener('click', async () => {
+  if (!isConfigured) return showToast('Not configured', true);
+  try {
+    const data = await supabaseRequest('stock_counts', 'GET', null, '?select=*&order=submitted_at.desc&limit=5000');
+    if (!data.length) return showToast('No data to export', true);
+    const headers = ['submitted_at','counted_by','location','sku','product_name','quantity','notes'];
+    const csv = [headers.join(','), ...data.map(r =>
+      headers.map(h => JSON.stringify(r[h] ?? '')).join(',')
+    )].join('\n');
+    downloadFile(csv, 'stock-count-export.csv', 'text/csv');
+    showToast(`Exported ${data.length} rows`);
+  } catch(e) {
+    showToast('Export failed', true);
+  }
+});
+
+// ── Upload Products ──
+let parsedProducts = [];
+
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  parseFile(file);
+});
+
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) parseFile(file);
+});
+
+function parseFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    let rows = [];
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.csv')) {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(l => l.trim());
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+      rows = lines.slice(1).map(line => {
+        const cols = line.split(',').map(c => c.trim().replace(/"/g,''));
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = cols[i] || '');
+        return obj;
+      });
+    } else {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(ws).map(r => {
+        const obj = {};
+        Object.keys(r).forEach(k => obj[k.toLowerCase().trim()] = String(r[k] || ''));
+        return obj;
+      });
+    }
+    parsedProducts = rows.filter(r => r.name).map(r => ({
+      sku: r.sku || null,
+      name: r.name,
+      category: r.category || null,
+      unit: r.unit || null
+    }));
+    document.getElementById('upload-preview').style.display = 'block';
+    document.getElementById('upload-preview').textContent = `✓ Parsed ${parsedProducts.length} products — ready to upload`;
+    document.getElementById('btn-upload-products').style.display = 'block';
+  };
+  if (file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file);
+  else reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('btn-upload-products').addEventListener('click', async () => {
+  if (!parsedProducts.length) return;
+  if (!isConfigured) return showToast('Not configured', true);
+  document.getElementById('btn-upload-products').textContent = 'Uploading…';
+  try {
+    // Upload in chunks of 100
+    for (let i = 0; i < parsedProducts.length; i += 100) {
+      await supabaseRequest('products', 'POST', parsedProducts.slice(i, i+100));
+    }
+    showToast(`✓ Uploaded ${parsedProducts.length} products`);
+    document.getElementById('btn-upload-products').textContent = 'Upload to Database →';
+    document.getElementById('upload-preview').textContent = `✓ ${parsedProducts.length} products uploaded successfully!`;
+    loadProducts(); // Refresh local cache
+  } catch(e) {
+    showToast('Upload failed — check console', true);
+    document.getElementById('btn-upload-products').textContent = 'Upload to Database →';
+    console.error(e);
+  }
+});
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isError ? ' error' : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', 3000);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function downloadFile(content, filename, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = filename;
+  a.click();
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+checkAccess();
+initConfig();
+</script>
+</body>
+</html>
